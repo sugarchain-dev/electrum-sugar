@@ -499,7 +499,7 @@ class ElectrumWindow(App):
         ''' This is the start point of the kivy ui
         '''
         import time
-        Logger.info('Time to on_start: {} <<<<<<<<'.format(time.clock()))
+        Logger.info('Time to on_start: {} <<<<<<<<'.format(time.process_time()))
         win = Window
         win.bind(size=self.on_size, on_keyboard=self.on_keyboard)
         win.bind(on_key_down=self.on_key_down)
