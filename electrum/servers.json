@@ -1,4 +1,10 @@
 {
+    "sugar.electrumx.japanesecoin-pool.work": {
+        "pruning": "-",
+        "s": "50002",
+        "t": "50001",
+        "version": "1.4"
+    },
     "localhost": {
         "pruning": "-",
         "s": "50002",
