@@ -39,8 +39,8 @@ def read_json(filename, default):
     return r
 
 
-GIT_REPO_URL = "https://github.com/sugarchain-dev/electrum-sugar"
-GIT_REPO_ISSUES_URL = "https://github.com/sugarchain-dev/electrum-sugar/issues"
+GIT_REPO_URL = "https://github.com/sugarchain-project/electrum-sugar"
+GIT_REPO_ISSUES_URL = "https://github.com/sugarchain-project/electrum-sugar/issues"
 
 
 class AbstractNet:

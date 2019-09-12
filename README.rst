@@ -10,10 +10,10 @@ Electrum for Sugarchain - Lightweight Sugarchain client
   Homepage: https://sugarchain-dev.github.io/
 
 
-.. image:: https://travis-ci.org/sugarchain-dev/electrum-sugar.svg?branch=master-3.3.x
-    :target: https://travis-ci.org/sugarchain-dev/electrum-sugar
+.. image:: https://travis-ci.org/sugarchain-project/electrum-sugar.svg?branch=master-3.3.x
+    :target: https://travis-ci.org/sugarchain-project/electrum-sugar
     :alt: Build Status
-.. image:: https://coveralls.io/repos/github/sugarchain-dev/electrum-sugar/badge.svg?branch=master
+.. image:: https://coveralls.io/repos/github/sugarchain-project/electrum-sugar/badge.svg?branch=master
     :target: https://coveralls.io/github/spesmilo/electrum?branch=master-3.3.x
     :alt: Test coverage statistics
 
@@ -54,7 +54,7 @@ Development version
 
 Check out the code from GitHub::
 
-    git clone git://github.com/sugarchain-dev/electrum-sugar.git
+    git clone git://github.com/sugarchain-project/electrum-sugar.git
     cd electrum-sugar
 
 Run install (this should install dependencies)::

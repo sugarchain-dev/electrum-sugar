@@ -35,7 +35,7 @@ folder.
         sudo rm -rf $FRESH_CLONE && \
         mkdir -p $FRESH_CLONE && \
         cd $FRESH_CLONE  && \
-        git clone https://github.com/sugarchain-dev/electrum-sugar.git && \
+        git clone https://github.com/sugarchain-project/electrum-sugar.git && \
         cd electrum-sugar
     ```
 

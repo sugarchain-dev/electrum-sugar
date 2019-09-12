@@ -4,7 +4,7 @@
 PYTHON_VERSION=3.6.4
 BUILDDIR=/tmp/electrum-sugar-build
 PACKAGE=Electrum-SUGAR
-GIT_REPO=https://github.com/sugarchain-dev/electrum-sugar
+GIT_REPO=https://github.com/sugarchain-project/electrum-sugar
 LIBSECP_VERSION="b408c6a8b287003d1ade5709e6f7bc3c7f1d5be7"
 
 . $(dirname "$0")/base.sh
