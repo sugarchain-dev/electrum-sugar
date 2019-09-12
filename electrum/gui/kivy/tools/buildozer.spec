@@ -1,13 +1,13 @@
 [app]
 
 # (str) Title of your application
-title = Electrum
+title = Electrum for Sugarchain
 
 # (str) Package name
 package.name = Electrum
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = org.electrum
+package.domain = org.electrum_sugar
 
 # (str) Source code where the main.py live
 source.dir = .
@@ -42,7 +42,9 @@ requirements =
     plyer,
     kivy==82d561d62577757d478df52173610f925c05ecab,
     libffi,
-    libsecp256k1
+    libsecp256k1,
+    sugar_yespower,
+    pyblake2
 
 # (str) Presplash of the application
 #presplash.filename = %(source.dir)s/gui/kivy/theming/splash.png
@@ -152,7 +154,7 @@ android.whitelist = lib-dynload/_csv.so
 p4a.source_dir = /opt/python-for-android
 
 # (str) The directory in which python-for-android should look for your own build recipes (if any)
-#p4a.local_recipes =
+p4a.local_recipes = contrib/local_recipes
 
 # (str) Filename to the hook for p4a
 #p4a.hook =

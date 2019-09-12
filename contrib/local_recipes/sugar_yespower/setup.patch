@@ -1,0 +1,20 @@
+diff -crN sugar_yespower_python3.orig/setup.py sugar_yespower_python3/setup.py
+*** sugar_yespower_python3.orig/setup.py        Thu Sep 12 21:43:38 2019
+--- sugar_yespower_python3/setup.py     Thu Sep 12 21:44:12 2019
+***************
+*** 6,12 ****
+                                         'yespower-opt.c',
+                                         'sha256.c'
+                                         ],
+!                             extra_compile_args=['-O2', '-funroll-loops', '-fomit-frame-pointer'],
+                              include_dirs=['.'])
+
+  setup (name = 'sugar_yespower',
+--- 6,12 ----
+                                         'yespower-opt.c',
+                                         'sha256.c'
+                                         ],
+!                             extra_compile_args=['-O2'],
+                              include_dirs=['.'])
+
+  setup (name = 'sugar_yespower',
