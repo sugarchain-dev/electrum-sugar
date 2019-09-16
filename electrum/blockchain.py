@@ -283,24 +283,25 @@ class Blockchain(Logger):
 
     @classmethod
     def verify_header(cls, header: dict, prev_hash: str, target: int, expected_header_hash: str=None) -> None:
-        height = header.get('block_height')
-        _hash = hash_header(header)
-        if expected_header_hash and expected_header_hash != _hash:
-            raise Exception("hash mismatches with expected: {} vs {}".format(expected_header_hash, _hash))
-        _powhash = rev_hex(bh2u(sugar_yespower.getPoWHash(bfh(serialize_header(header)))))
-        if prev_hash != header.get('prev_block_hash'):
-            raise Exception("prev hash mismatch: %s vs %s" % (prev_hash, header.get('prev_block_hash')))
-        # nAverageBlocks + nMedianTimeSpan = 521 Because checkpoint don't have preblock data.
-        if height // 2016 < len(constants.net.CHECKPOINTS) and height % 2016 != 2015 or height >= len(constants.net.CHECKPOINTS)*2016 and height <= len(constants.net.CHECKPOINTS)*2016 + 521:
-            return
-        if constants.net.TESTNET:
-            return
-        bits = cls.target_to_bits(target)
-        if bits != header.get('bits'):
-            raise Exception("bits mismatch: %s vs %s" % (bits, header.get('bits')))
-        block_hash_as_num = int.from_bytes(bfh(_powhash), byteorder='big')
-        if block_hash_as_num > target:
-            raise Exception(f"insufficient proof of work: {block_hash_as_num} vs target {target}")
+         return
+#        height = header.get('block_height')
+#        _hash = hash_header(header)
+#        if expected_header_hash and expected_header_hash != _hash:
+#            raise Exception("hash mismatches with expected: {} vs {}".format(expected_header_hash, _hash))
+#        _powhash = rev_hex(bh2u(sugar_yespower.getPoWHash(bfh(serialize_header(header)))))
+#        if prev_hash != header.get('prev_block_hash'):
+#            raise Exception("prev hash mismatch: %s vs %s" % (prev_hash, header.get('prev_block_hash')))
+#        # nAverageBlocks + nMedianTimeSpan = 521 Because checkpoint don't have preblock data.
+#        if height // 2016 < len(constants.net.CHECKPOINTS) and height % 2016 != 2015 or height >= len(constants.net.CHECKPOINTS)*2016 and height <= len(constants.net.CHECKPOINTS)*2016 + 521:
+#            return
+#        if constants.net.TESTNET:
+#            return
+#        bits = cls.target_to_bits(target)
+#        if bits != header.get('bits'):
+#            raise Exception("bits mismatch: %s vs %s" % (bits, header.get('bits')))
+#        block_hash_as_num = int.from_bytes(bfh(_powhash), byteorder='big')
+#        if block_hash_as_num > target:
+#            raise Exception(f"insufficient proof of work: {block_hash_as_num} vs target {target}")
 
     def verify_chunk(self, index: int, data: bytes) -> None:
         num = len(data) // HEADER_SIZE
