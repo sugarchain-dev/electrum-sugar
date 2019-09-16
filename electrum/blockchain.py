@@ -282,28 +282,31 @@ class Blockchain(Logger):
         self._size = os.path.getsize(p)//HEADER_SIZE if os.path.exists(p) else 0
 
     @classmethod
-    def verify_header(cls, header: dict, prev_hash: str, target: int, expected_header_hash: str=None) -> None:
+    def verify_header(cls, header: dict, prev_hash: str, target: int, check_header_bool: bool, expected_header_hash: str=None) -> None:
         height = header.get('block_height')
+        if prev_hash != header.get('prev_block_hash'):
+            raise Exception("prev hash mismatch: %s vs %s" % (prev_hash, header.get('prev_block_hash')))
+        if check_header_bool is False and height % 12 != 0:
+            return
         _hash = hash_header(header)
         if expected_header_hash and expected_header_hash != _hash:
             raise Exception("hash mismatches with expected: {} vs {}".format(expected_header_hash, _hash))
-        _powhash = rev_hex(bh2u(sugar_yespower.getPoWHash(bfh(serialize_header(header)))))
-        if prev_hash != header.get('prev_block_hash'):
-            raise Exception("prev hash mismatch: %s vs %s" % (prev_hash, header.get('prev_block_hash')))
+        if constants.net.TESTNET:
+            return
         # nAverageBlocks + nMedianTimeSpan = 521 Because checkpoint don't have preblock data.
         if height // 2016 < len(constants.net.CHECKPOINTS) and height % 2016 != 2015 or height >= len(constants.net.CHECKPOINTS)*2016 and height <= len(constants.net.CHECKPOINTS)*2016 + 521:
-            return
-        if constants.net.TESTNET:
             return
         bits = cls.target_to_bits(target)
         if bits != header.get('bits'):
             raise Exception("bits mismatch: %s vs %s" % (bits, header.get('bits')))
+        _powhash = rev_hex(bh2u(sugar_yespower.getPoWHash(bfh(serialize_header(header)))))
         block_hash_as_num = int.from_bytes(bfh(_powhash), byteorder='big')
         if block_hash_as_num > target:
             raise Exception(f"insufficient proof of work: {block_hash_as_num} vs target {target}")
 
     def verify_chunk(self, index: int, data: bytes) -> None:
         num = len(data) // HEADER_SIZE
+        check_header_bool = True if num == 2016 else False
         start_height = index * 2016
         prev_hash = self.get_hash(start_height - 1)
         headers = {}
@@ -316,8 +319,11 @@ class Blockchain(Logger):
             raw_header = data[i*HEADER_SIZE : (i+1)*HEADER_SIZE]
             header = deserialize_header(raw_header, index*2016 + i)
             headers[header.get('block_height')] = header
-            target = self.get_target(index*2016 + i, headers)
-            self.verify_header(header, prev_hash, target, expected_header_hash)
+            if check_header_bool is True or height % 12 == 0:
+                target = self.get_target(index*2016 + i, headers)
+            else:
+                target = 0
+            self.verify_header(header, prev_hash, target, check_header_bool, expected_header_hash)
             prev_hash = hash_header(header)
 
     @with_lock
@@ -658,13 +664,14 @@ class Blockchain(Logger):
             return False
         headers = {}
         headers[header.get('block_height')] = header
+        check_header_bool = True
         try:
             target = self.get_target(height, headers)
         except MissingHeader:
             _logger.info(f"verify_header failed {height}")
             return False
         try:
-            self.verify_header(header, prev_hash, target)
+            self.verify_header(header, prev_hash, target, check_header_bool)
         except BaseException as e:
             _logger.info(f"verify_header failed {e}, {height}")
             return False
