@@ -69,6 +69,11 @@ Label.register('Roboto',
                'electrum/gui/kivy/data/fonts/Roboto.ttf',
                'electrum/gui/kivy/data/fonts/Roboto-Bold.ttf',
                'electrum/gui/kivy/data/fonts/Roboto-Bold.ttf')
+Label.register('JP',
+               'electrum/gui/kivy/data/fonts/GenShinGothic-P-Normal.ttf',
+               'electrum/gui/kivy/data/fonts/GenShinGothic-P-Normal.ttf',
+               'electrum/gui/kivy/data/fonts/GenShinGothic-P-Bold.ttf',
+               'electrum/gui/kivy/data/fonts/GenShinGothic-P-Bold.ttf')
 
 
 from electrum.util import (base_units, NoDynamicFeeEstimates, decimal_point_to_base_unit_name,
@@ -178,7 +183,7 @@ class ElectrumWindow(App):
 
     def on_new_intent(self, intent):
         data = intent.getDataString()
-        if intent.getScheme() == 'bitcoin':
+        if intent.getScheme() == 'sugarchain':
             self.set_URI(data)
         elif intent.getScheme() == 'lightning':
             self.set_ln_invoice(data)
@@ -386,7 +391,7 @@ class ElectrumWindow(App):
         if is_address(data):
             self.set_URI(data)
             return
-        if data.startswith('bitcoin:'):
+        if data.startswith('sugarchain:'):
             self.set_URI(data)
             return
         if data.startswith('ln'):
@@ -539,7 +544,7 @@ class ElectrumWindow(App):
         self.fiat_unit = self.fx.ccy if self.fx.is_enabled() else ''
         # default tab
         self.switch_to('history')
-        # bind intent for bitcoin: URI scheme
+        # bind intent for sugarchain: URI scheme
         if platform == 'android':
             from android import activity
             from jnius import autoclass
@@ -887,7 +892,7 @@ class ElectrumWindow(App):
             icon = (os.path.dirname(os.path.realpath(__file__))
                     + '/../../' + self.icon)
             notification.notify('Electrum', message,
-                            app_icon=icon, app_name='Electrum')
+                            app_icon=icon, app_name='Electrum for Sugarchain')
         except ImportError:
             Logger.Error('Notification: needs plyer; `sudo python3 -m pip install plyer`')
 

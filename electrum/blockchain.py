@@ -22,6 +22,7 @@
 # SOFTWARE.
 import os
 import threading
+import sugar_yespower
 from typing import Optional, Dict, Mapping, Sequence
 
 from . import util
@@ -36,7 +37,7 @@ from .logging import get_logger, Logger
 _logger = get_logger(__name__)
 
 HEADER_SIZE = 80  # bytes
-MAX_TARGET = 0x00000000FFFF0000000000000000000000000000000000000000000000000000
+MAX_TARGET = 0x003fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 
 
 class MissingHeader(Exception):
@@ -282,17 +283,22 @@ class Blockchain(Logger):
 
     @classmethod
     def verify_header(cls, header: dict, prev_hash: str, target: int, expected_header_hash: str=None) -> None:
+        height = header.get('block_height')
         _hash = hash_header(header)
         if expected_header_hash and expected_header_hash != _hash:
             raise Exception("hash mismatches with expected: {} vs {}".format(expected_header_hash, _hash))
+        _powhash = rev_hex(bh2u(sugar_yespower.getPoWHash(bfh(serialize_header(header)))))
         if prev_hash != header.get('prev_block_hash'):
             raise Exception("prev hash mismatch: %s vs %s" % (prev_hash, header.get('prev_block_hash')))
+        # nAverageBlocks + nMedianTimeSpan = 521 Because checkpoint don't have preblock data.
+        if height // 2016 < len(constants.net.CHECKPOINTS) and height % 2016 != 2015 or height >= len(constants.net.CHECKPOINTS)*2016 and height <= len(constants.net.CHECKPOINTS)*2016 + 521:
+            return
         if constants.net.TESTNET:
             return
         bits = cls.target_to_bits(target)
         if bits != header.get('bits'):
             raise Exception("bits mismatch: %s vs %s" % (bits, header.get('bits')))
-        block_hash_as_num = int.from_bytes(bfh(_hash), byteorder='big')
+        block_hash_as_num = int.from_bytes(bfh(_powhash), byteorder='big')
         if block_hash_as_num > target:
             raise Exception(f"insufficient proof of work: {block_hash_as_num} vs target {target}")
 
@@ -300,7 +306,7 @@ class Blockchain(Logger):
         num = len(data) // HEADER_SIZE
         start_height = index * 2016
         prev_hash = self.get_hash(start_height - 1)
-        target = self.get_target(index-1)
+        headers = {}
         for i in range(num):
             height = start_height + i
             try:
@@ -309,6 +315,8 @@ class Blockchain(Logger):
                 expected_header_hash = None
             raw_header = data[i*HEADER_SIZE : (i+1)*HEADER_SIZE]
             header = deserialize_header(raw_header, index*2016 + i)
+            headers[header.get('block_height')] = header
+            target = self.get_target(index*2016 + i, headers)
             self.verify_header(header, prev_hash, target, expected_header_hash)
             prev_hash = hash_header(header)
 
@@ -489,36 +497,95 @@ class Blockchain(Logger):
                 raise MissingHeader(height)
             return hash_header(header)
 
-    def get_target(self, index: int) -> int:
+    def get_median_timestamp(self, height, chain):
+        nMedianTimeSpan = 11
+        pmedian = [];
+        pindex = height
+        i = 0
+        while (i < nMedianTimeSpan and pindex != 0):
+            BlockReading = chain.get(pindex)
+            if BlockReading is None:
+                BlockReading = self.read_header(pindex)
+            pmedian.append(BlockReading.get('timestamp'))
+            pindex -= 1
+            i += 1
+        pmedian.sort()
+        return pmedian[i//2];
+
+
+    def get_target_sugarshield(self, height, chain=None):
+
+        last = chain.get(height - 1)
+        if last is None:
+            last = self.read_header(height - 1)
+
+        # params
+        BlockReading = last
+        nActualTimespan = 0
+        FistBlockTime = 0
+        nAverageBlocks = 510
+        nPowMaxAdjustDown = 32; # 32% adjustment down
+        nPowMaxAdjustUp = 16; # 16% adjustment up
+        CountBlocks = 0
+        bnNum = 0
+        bnTmp = 0
+        bnOldAvg = 0
+        nTargetTimespan = 510 * 5
+        nMinActualTimespan =  (nTargetTimespan * (100 - nPowMaxAdjustUp)) // 100
+        nMaxActualTimespan = (nTargetTimespan * (100 + nPowMaxAdjustDown)) // 100
+
+        # nAverageBlocks + nMedianTimeSpan = 521 Because checkpoint don't have preblock data.
+        if height < len(self.checkpoints)*2016 + 521:
+            return 0
+
+        if last is None or height-1 <= nAverageBlocks:
+            return MAX_TARGET
+        for i in range(1, nAverageBlocks + 1):
+            CountBlocks += 1
+
+            if CountBlocks <= nAverageBlocks:
+                bnTmp = self.bits_to_target(BlockReading.get('bits'))
+                bnOldAvg += bnTmp
+
+            BlockReading = chain.get((height-1) - CountBlocks)
+            if BlockReading is None:
+                BlockReading = self.read_header((height-1) - CountBlocks)
+
+        nActualTimespan = self.get_median_timestamp(height - 1, chain) - self.get_median_timestamp((height-1) - CountBlocks, chain)
+        fix = 0
+        if (nActualTimespan - nTargetTimespan < 0 and (nActualTimespan - nTargetTimespan) % 4 != 0):
+            fix = 1
+        nActualTimespan = nTargetTimespan + (nActualTimespan - nTargetTimespan)//4
+        nActualTimespan += fix
+        nActualTimespan = max(nActualTimespan, nMinActualTimespan)
+        nActualTimespan = min(nActualTimespan, nMaxActualTimespan)
+
+        # retargets
+        bnNew = bnOldAvg // nAverageBlocks
+        bnNew //= nTargetTimespan
+        bnNew *= nActualTimespan
+
+        bnNew = min(bnNew, MAX_TARGET)
+
+        return bnNew
+
+    def get_target(self, height: int, chain=None) -> int:
         # compute target from chunk x, used in chunk x+1
         if constants.net.TESTNET:
             return 0
-        if index == -1:
-            return MAX_TARGET
-        if index < len(self.checkpoints):
-            h, t = self.checkpoints[index]
+        elif height // 2016 < len(self.checkpoints) and height % 2016 == 2015:
+            h, t = self.checkpoints[height // 2016]
             return t
-        # new target
-        first = self.read_header(index * 2016)
-        last = self.read_header(index * 2016 + 2015)
-        if not first or not last:
-            raise MissingHeader()
-        bits = last.get('bits')
-        target = self.bits_to_target(bits)
-        nActualTimespan = last.get('timestamp') - first.get('timestamp')
-        nTargetTimespan = 14 * 24 * 60 * 60
-        nActualTimespan = max(nActualTimespan, nTargetTimespan // 4)
-        nActualTimespan = min(nActualTimespan, nTargetTimespan * 4)
-        new_target = min(MAX_TARGET, (target * nActualTimespan) // nTargetTimespan)
-        # not any target can be represented in 32 bits:
-        new_target = self.bits_to_target(self.target_to_bits(new_target))
-        return new_target
+        elif height // 2016 < len(self.checkpoints) and height % 2016 != 2015:
+            return 0
+        else:
+            return self.get_target_sugarshield(height, chain)
 
     @classmethod
     def bits_to_target(cls, bits: int) -> int:
         bitsN = (bits >> 24) & 0xff
-        if not (0x03 <= bitsN <= 0x1d):
-            raise Exception("First part of bits should be in [0x03, 0x1d]")
+        if not (0x03 <= bitsN <= 0x1f):
+            raise Exception("First part of bits should be in [0x03, 0x1f]")
         bitsBase = bits & 0xffffff
         if not (0x8000 <= bitsBase <= 0x7fffff):
             raise Exception("Second part of bits should be in [0x8000, 0x7fffff]")
@@ -537,9 +604,12 @@ class Blockchain(Logger):
 
     def chainwork_of_header_at_height(self, height: int) -> int:
         """work done by single header at given height"""
-        chunk_idx = height // 2016 - 1
-        target = self.get_target(chunk_idx)
-        work = ((2 ** 256 - target - 1) // (target + 1)) + 1
+        header = self.read_header(height)
+        work = 0
+        if header:
+            bits = header.get('bits')
+            target = self.bits_to_target(bits)
+            work = ((2 ** 256 - target - 1) // (target + 1)) + 1
         return work
 
     @with_lock
@@ -574,22 +644,29 @@ class Blockchain(Logger):
             return False
         height = header['block_height']
         if check_height and self.height() != height - 1:
+            _logger.info(f"check_height failed {self.height()}, {height - 1}")
             return False
         if height == 0:
             return hash_header(header) == constants.net.GENESIS
         try:
             prev_hash = self.get_hash(height - 1)
         except:
+            _logger.info(f"hash check failed {height}")
             return False
         if prev_hash != header.get('prev_block_hash'):
+            _logger.info(f"hash check failed {prev_hash}, {header.get('prev_block_hash')}")
             return False
+        headers = {}
+        headers[header.get('block_height')] = header
         try:
-            target = self.get_target(height // 2016 - 1)
+            target = self.get_target(height, headers)
         except MissingHeader:
+            _logger.info(f"verify_header failed {height}")
             return False
         try:
             self.verify_header(header, prev_hash, target)
         except BaseException as e:
+            _logger.info(f"verify_header failed {e}, {height}")
             return False
         return True
 
@@ -610,7 +687,8 @@ class Blockchain(Logger):
         n = self.height() // 2016
         for index in range(n):
             h = self.get_hash((index+1) * 2016 -1)
-            target = self.get_target(index)
+            header = self.read_header((index+1) * 2016 -1)
+            target = self.bits_to_target(header.get('bits'))
             cp.append((h, target))
         return cp
 

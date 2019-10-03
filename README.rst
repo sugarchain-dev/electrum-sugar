@@ -1,32 +1,27 @@
-Electrum - Lightweight Bitcoin client
+Electrum for Sugarchain - Lightweight Sugarchain client
 =====================================
 
 ::
 
   Licence: MIT Licence
-  Author: Thomas Voegtlin
+  Origin Author: Thomas Voegtlin
+  Port Maintainer: y-chan
   Language: Python (>= 3.6)
-  Homepage: https://electrum.org/
+  Homepage: https://sugarchain-dev.github.io/
 
 
-.. image:: https://travis-ci.org/spesmilo/electrum.svg?branch=master
-    :target: https://travis-ci.org/spesmilo/electrum
+.. image:: https://travis-ci.org/sugarchain-project/electrum-sugar.svg?branch=master-3.3.x
+    :target: https://travis-ci.org/sugarchain-project/electrum-sugar
     :alt: Build Status
-.. image:: https://coveralls.io/repos/github/spesmilo/electrum/badge.svg?branch=master
-    :target: https://coveralls.io/github/spesmilo/electrum?branch=master
+.. image:: https://coveralls.io/repos/github/sugarchain-project/electrum-sugar/badge.svg?branch=master
+    :target: https://coveralls.io/github/spesmilo/electrum?branch=master-3.3.x
     :alt: Test coverage statistics
-.. image:: https://d322cqt584bo4o.cloudfront.net/electrum/localized.svg
-    :target: https://crowdin.com/project/electrum
-    :alt: Help translate Electrum online
-
-
-
 
 
 Getting started
 ===============
 
-Electrum is a pure python application. If you want to use the
+Electrum for Sugarchain is a pure python application. If you want to use the
 Qt interface, install the Qt dependencies::
 
     sudo apt-get install python3-pyqt5
@@ -59,8 +54,8 @@ Development version
 
 Check out the code from GitHub::
 
-    git clone git://github.com/spesmilo/electrum.git
-    cd electrum
+    git clone git://github.com/sugarchain-project/electrum-sugar.git
+    cd electrum-sugar
     git submodule update --init
 
 Run install (this should install dependencies)::

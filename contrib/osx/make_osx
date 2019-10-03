@@ -2,9 +2,9 @@
 
 # Parameterize
 PYTHON_VERSION=3.6.4
-BUILDDIR=/tmp/electrum-build
-PACKAGE=Electrum
-GIT_REPO=https://github.com/spesmilo/electrum
+BUILDDIR=/tmp/electrum-sugar-build
+PACKAGE=Electrum-SUGAR
+GIT_REPO=https://github.com/sugarchain-project/electrum-sugar
 LIBSECP_VERSION="b408c6a8b287003d1ade5709e6f7bc3c7f1d5be7"
 
 . $(dirname "$0")/base.sh
@@ -139,18 +139,18 @@ done
 info "Building binary"
 APP_SIGN="$APP_SIGN" pyinstaller --noconfirm --ascii --clean --name $VERSION contrib/osx/osx.spec || fail "Could not build binary"
 
-info "Adding bitcoin URI types to Info.plist"
+info "Adding sugarchain URI types to Info.plist"
 plutil -insert 'CFBundleURLTypes' \
-	-xml '<array><dict> <key>CFBundleURLName</key> <string>bitcoin</string> <key>CFBundleURLSchemes</key> <array><string>bitcoin</string></array> </dict></array>' \
+	-xml '<array><dict> <key>CFBundleURLName</key> <string>sugarchain</string> <key>CFBundleURLSchemes</key> <array><string>sugarchain</string></array> </dict></array>' \
 	-- dist/$PACKAGE.app/Contents/Info.plist \
 	|| fail "Could not add keys to Info.plist. Make sure the program 'plutil' exists and is installed."
 
 DoCodeSignMaybe "app bundle" "dist/${PACKAGE}.app" "$APP_SIGN" # If APP_SIGN is empty will be a noop
 
 info "Creating .DMG"
-hdiutil create -fs HFS+ -volname $PACKAGE -srcfolder dist/$PACKAGE.app dist/electrum-$VERSION.dmg || fail "Could not create .DMG"
+hdiutil create -fs HFS+ -volname $PACKAGE -srcfolder dist/$PACKAGE.app dist/electrum-sugar-$VERSION.dmg || fail "Could not create .DMG"
 
-DoCodeSignMaybe ".DMG" "dist/electrum-${VERSION}.dmg" "$APP_SIGN" # If APP_SIGN is empty will be a noop
+DoCodeSignMaybe ".DMG" "dist/electrum-sugar-${VERSION}.dmg" "$APP_SIGN" # If APP_SIGN is empty will be a noop
 
 if [ -z "$APP_SIGN" ]; then
     warn "App was built successfully but was not code signed. Users may get security warnings from macOS."

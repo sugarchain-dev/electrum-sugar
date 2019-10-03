@@ -48,10 +48,10 @@ Move `prebuilt_qr` to El Capitan: `contrib/osx/CalinsQRReader/prebuilt_qr`.
 
 #### 1.2 Build Electrum
 
-    cd electrum
+    cd electrum-sugar
     ./contrib/osx/make_osx
     
-This creates both a folder named Electrum.app and the .dmg file.
+This creates both a folder named Electrum-SUGAR.app and the .dmg file.
 
 
 ## 2. Building the image deterministically (WIP)
@@ -68,5 +68,5 @@ Copy the Electrum.app directory over and install the dependencies, e.g.:
     
 Then you can just invoke `package.sh` with the path to the app:
 
-    cd electrum
-    ./contrib/osx/package.sh ~/Electrum.app/
+    cd electrum-sugar
+    ./contrib/osx/package.sh ~/Electrum-SUGAR.app/
