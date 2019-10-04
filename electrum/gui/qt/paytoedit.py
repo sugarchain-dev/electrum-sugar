@@ -224,13 +224,8 @@ class PayToEdit(CompletionTextEdit, ScanQRTextEdit, Logger):
 
     def qr_input(self):
         data = super(PayToEdit,self).qr_input()
-<<<<<<< HEAD
-        if data.startswith("bitcoin:"):
-            self.win.pay_to_URI(data)
-=======
         if data.startswith("sugarchain:"):
-            self.scan_f(data)
->>>>>>> master-3.3.x
+            self.win.pay_to_URI(data)
             # TODO: update fee
 
     def resolve(self):
