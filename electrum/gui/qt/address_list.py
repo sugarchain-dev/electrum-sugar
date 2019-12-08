@@ -217,20 +217,13 @@ class AddressList(MyTreeView):
             idx = self.indexAt(position)
             if not idx.isValid():
                 return
-            col = idx.column()
             item = self.model().itemFromIndex(idx)
             if not item:
                 return
             addr = addrs[0]
-
             addr_column_title = self.model().horizontalHeaderItem(self.Columns.LABEL).text()
             addr_idx = idx.sibling(idx.row(), self.Columns.LABEL)
-
-            column_title = self.model().horizontalHeaderItem(col).text()
-            copy_text = self.model().itemFromIndex(idx).text()
-            if col == self.Columns.COIN_BALANCE or col == self.Columns.FIAT_BALANCE:
-                copy_text = copy_text.strip()
-            menu.addAction(_("Copy {}").format(column_title), lambda: self.place_text_on_clipboard(copy_text))
+            self.add_copy_menu(menu, idx)
             menu.addAction(_('Details'), lambda: self.parent.show_address(addr))
             persistent = QPersistentModelIndex(addr_idx)
             menu.addAction(_("Edit {}").format(addr_column_title), lambda p=persistent: self.edit(QModelIndex(p)))
@@ -253,16 +246,16 @@ class AddressList(MyTreeView):
 
         coins = self.wallet.get_spendable_coins(addrs)
         if coins:
-            menu.addAction(_("Spend from"), lambda: self.parent.spend_coins(coins))
+            menu.addAction(_("Spend from"), lambda: self.parent.utxo_list.set_spend_list(coins))
 
         run_hook('receive_menu', menu, addrs, self.wallet)
         menu.exec_(self.viewport().mapToGlobal(position))
 
-    def place_text_on_clipboard(self, text):
+    def place_text_on_clipboard(self, text: str, *, title: str = None) -> None:
         if is_address(text):
             try:
                 self.wallet.check_address(text)
             except InternalAddressCorruption as e:
                 self.parent.show_error(str(e))
                 raise
-        self.parent.app.clipboard().setText(text)
+        super().place_text_on_clipboard(text, title=title)

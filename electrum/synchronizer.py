@@ -60,8 +60,8 @@ class SynchronizerBase(NetworkJobOnDefaultServer):
     """
     def __init__(self, network: 'Network'):
         self.asyncio_loop = network.asyncio_loop
-        NetworkJobOnDefaultServer.__init__(self, network)
         self._reset_request_counters()
+        NetworkJobOnDefaultServer.__init__(self, network)
 
     def _reset(self):
         super()._reset()
@@ -209,7 +209,7 @@ class Synchronizer(SynchronizerBase):
     async def _get_transaction(self, tx_hash, *, allow_server_not_finding_tx=False):
         self._requests_sent += 1
         try:
-            result = await self.network.get_transaction(tx_hash)
+            raw_tx = await self.network.get_transaction(tx_hash)
         except UntrustedServerReturnedError as e:
             # most likely, "No such mempool or blockchain transaction"
             if allow_server_not_finding_tx:
@@ -219,7 +219,7 @@ class Synchronizer(SynchronizerBase):
                 raise
         finally:
             self._requests_answered += 1
-        tx = Transaction(result)
+        tx = Transaction(raw_tx)
         try:
             tx.deserialize()  # see if raises
         except Exception as e:
@@ -233,7 +233,7 @@ class Synchronizer(SynchronizerBase):
             raise SynchronizerFailure(f"received tx does not match expected txid ({tx_hash} != {tx.txid()})")
         tx_height = self.requested_tx.pop(tx_hash)
         self.wallet.receive_tx_callback(tx_hash, tx, tx_height)
-        self.logger.info(f"received tx {tx_hash} height: {tx_height} bytes: {len(tx.raw)}")
+        self.logger.info(f"received tx {tx_hash} height: {tx_height} bytes: {len(raw_tx)}")
         # callbacks
         self.wallet.network.trigger_callback('new_transaction', self.wallet, tx)
 
