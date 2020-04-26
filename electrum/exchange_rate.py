@@ -22,8 +22,8 @@ from .logging import Logger
 
 
 DEFAULT_ENABLED = False
-DEFAULT_CURRENCY = "BTC"
-DEFAULT_EXCHANGE = "Unknown"  # default exchange should ideally provide historical rates
+DEFAULT_CURRENCY = "USD"
+DEFAULT_EXCHANGE = "CoinGecko"  # default exchange should ideally provide historical rates
 
 
 # See https://en.wikipedia.org/wiki/ISO_4217
@@ -144,10 +144,27 @@ class ExchangeBase(Logger):
 
 
 
-class Unknown(ExchangeBase):
+class CoinGecko(ExchangeBase):
 
     async def get_rates(self, ccy):
-        return {'BTC': 0}
+        json = await self.get_json('api.coingecko.com', '/api/v3/coins/sugarchain?localization=False&sparkline=false')
+        prices = json["market_data"]["current_price"]
+        return dict([(a[0].upper(),PyDecimal(a[1])) for a in prices.items()])
+
+    def history_ccys(self):
+        return ['AED', 'ARS', 'AUD', 'BTD', 'BHD', 'BMD', 'BRL', 'BTC',
+                'CAD', 'CHF', 'CLP', 'CNY', 'CZK', 'DKK', 'ETH', 'EUR',
+                'GBP', 'HKD', 'HUF', 'IDR', 'ILS', 'INR', 'JPY', 'KRW',
+                'KWD', 'LKR', 'LTC', 'MMK', 'MXH', 'MYR', 'NOK', 'NZD',
+                'PHP', 'PKR', 'PLN', 'RUB', 'SAR', 'SEK', 'SGD', 'THB',
+                'TRY', 'TWD', 'USD', 'VEF', 'XAG', 'XAU', 'XDR', 'ZAR']
+
+    async def request_history(self, ccy):
+        history = await self.get_json('api.coingecko.com', '/api/v3/coins/sugarchain/market_chart?vs_currency=%s&days=max' % ccy)
+
+        from datetime import datetime as dt
+        return dict([(dt.utcfromtimestamp(h[0]/1000).strftime('%Y-%m-%d'), h[1])
+                     for h in history['prices']])
 
 
 def dictinvert(d):
