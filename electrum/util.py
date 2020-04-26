@@ -648,9 +648,9 @@ def time_difference(distance_in_time, include_seconds):
         return "over %d years" % (round(distance_in_minutes / 525600))
 
 mainnet_block_explorers = {
-    'blockbook': ('https://sugarchain-blockbook.ilmango.work/',
+    '1explorer': ('https://1explorer.sugarchain.org/',
                        {'tx': 'tx/', 'addr': 'address/'}),
-    'official iquidus': ('https://1explorer.sugarchain.org/',
+    'sugarbook': ('https://sugarbook.xyz/',
                        {'tx': 'tx/', 'addr': 'address/'}),
 }
 
@@ -665,7 +665,7 @@ def block_explorer_info():
 
 def block_explorer(config: 'SimpleConfig') -> str:
     from . import constants
-    default_ = 'blockbook'
+    default_ = 'sugarbook'
     be_key = config.get('block_explorer', default_)
     be = block_explorer_info().get(be_key)
     return be_key if be is not None else default_
