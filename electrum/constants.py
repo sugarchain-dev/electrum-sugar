@@ -109,7 +109,7 @@ class BitcoinTestnet(AbstractNet):
         'p2wsh':       0x02575483,  # Vpub
     }
     XPUB_HEADERS_INV = inv_dict(XPUB_HEADERS)
-    BIP44_COIN_TYPE = 1
+    BIP44_COIN_TYPE = 408
 
 
 class BitcoinRegtest(BitcoinTestnet):

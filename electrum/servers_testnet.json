@@ -1,1 +1,14 @@
-{}
+{
+    "electrumx.sugarbook.xyz": {
+        "pruning": "-",
+        "s": "51002",
+        "t": "51001",
+        "version": "1.4"
+    },
+    "localhost": {
+        "pruning": "-",
+        "s": "51002",
+        "t": "51001",
+        "version": "1.4"
+    }
+}

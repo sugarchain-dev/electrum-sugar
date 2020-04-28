@@ -650,12 +650,14 @@ def time_difference(distance_in_time, include_seconds):
 mainnet_block_explorers = {
     '1explorer': ('https://1explorer.sugarchain.org/',
                        {'tx': 'tx/', 'addr': 'address/'}),
+    '2explorer': ('https://sugarchain.org/explorer/#/',
+                       {'tx': 'transaction/', 'addr': 'address/'}),
     'sugarbook': ('https://sugarbook.xyz/',
                        {'tx': 'tx/', 'addr': 'address/'}),
 }
 
 testnet_block_explorers = {
-    'system default': ('blockchain://000000000933ea01ad0ee984209779baaec3ced90fa3f408719526f8d77f4943/',
+    'sugarbook': ('https://testnet.sugarbook.xyz/',
                        {'tx': 'tx/', 'addr': 'address/'}),
 }
 
